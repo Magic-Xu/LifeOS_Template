@@ -1,0 +1,4 @@
+interface:
+  display_name: "LifeOS"
+  short_description: "按需读取、整理、检索并安全维护你的个人生命知识库上下文"
+  default_prompt: "使用 $lifeos 根据我的 LifeOS 上下文完成当前任务。"

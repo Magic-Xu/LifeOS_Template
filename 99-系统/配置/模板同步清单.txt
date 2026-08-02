@@ -1,0 +1,30 @@
+# 仅列出可以从公开模板复制到个人 LifeOS 的通用路径。
+# 禁止加入 AI上下文、AI整理报告、人物、健康、财务、附件或 age-recipient.txt。
+
+.agents/skills/lifeos
+.githooks
+.gitattributes
+.gitignore
+AGENTS.md
+README.md
+LICENSE
+99-系统/工作流
+99-系统/模板
+99-系统/配置/模板同步清单.txt
+脚本
+00-收件箱/.gitkeep
+01-日记/.gitkeep
+10-人生经历/重要事件/.gitkeep
+10-人生经历/决定与结果/.gitkeep
+10-人生经历/目标与复盘/.gitkeep
+20-人物关系/.gitkeep
+30-健康/.gitkeep
+30-健康/亲友健康/.gitkeep
+40-财务/.gitkeep
+50-兴趣与生活/读书与电影/.gitkeep
+50-兴趣与生活/旅行/.gitkeep
+50-兴趣与生活/兴趣爱好/.gitkeep
+50-兴趣与生活/外貌与护肤/.gitkeep
+90-附件/.gitkeep
+99-系统/AI上下文/.gitkeep
+99-系统/AI整理报告/.gitkeep
