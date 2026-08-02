@@ -1,0 +1,7 @@
+*.age -diff -merge
+*.zip binary
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.mp4 binary
