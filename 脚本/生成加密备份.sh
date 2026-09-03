@@ -4,12 +4,11 @@ set -euo pipefail
 LIFEOS_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 LIFEOS_PARENT="$(dirname "$LIFEOS_ROOT")"
 LIFEOS_NAME="$(basename "$LIFEOS_ROOT")"
-LIFEOS_BACKUP_PREFIX="LifeOS"
 LIFEOS_RECIPIENT_FILE="$LIFEOS_ROOT/99-系统/配置/age-recipient.txt"
 LIFEOS_STAMP="$(date '+%Y%m%d-%H%M%S')"
-LIFEOS_OUTPUT="$LIFEOS_ROOT/$LIFEOS_BACKUP_PREFIX-$LIFEOS_STAMP.zip.age"
+LIFEOS_OUTPUT="$LIFEOS_ROOT/LifeOS-$LIFEOS_STAMP.zip.age"
 LIFEOS_TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/lifeos-backup.XXXXXX")"
-LIFEOS_TEMP_ZIP="$LIFEOS_TEMP_DIR/$LIFEOS_BACKUP_PREFIX-$LIFEOS_STAMP.zip"
+LIFEOS_TEMP_ZIP="$LIFEOS_TEMP_DIR/LifeOS-$LIFEOS_STAMP.zip"
 
 trap 'rm -rf "$LIFEOS_TEMP_DIR"' EXIT
 
@@ -45,7 +44,10 @@ fi
 )
 
 age -r "$LIFEOS_RECIPIENT" -o "$LIFEOS_OUTPUT" "$LIFEOS_TEMP_ZIP"
-shasum -a 256 "$LIFEOS_OUTPUT" > "$LIFEOS_OUTPUT.sha256"
+(
+  cd "$LIFEOS_ROOT"
+  shasum -a 256 "$(basename "$LIFEOS_OUTPUT")" > "$(basename "$LIFEOS_OUTPUT").sha256"
+)
 
 print "已生成：$LIFEOS_OUTPUT"
 print "校验值：$LIFEOS_OUTPUT.sha256"

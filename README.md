@@ -9,6 +9,7 @@ LifeOS 是一套本地优先、隐私优先的个人生命知识库模板：使�
 - 本地 Markdown 是事实源，不依赖单一平台。
 - 平时只向收件箱和日记记录，分类由 AI 在确认后完成。
 - 事实、感受、个人解释和 AI 推断分开记录。
+- 历史事实保留发生时间与来源；当前状态和计划明确截至日期，不把文件修改时间当作事实已核验。
 - 个人明文禁止提交 Git，只允许提交经过加密的完整备份。
 - 数据可以由任意 Markdown 工具读取，避免平台锁定。
 
@@ -36,7 +37,7 @@ gh repo create YOUR_GITHUB_NAME/LifeOS --private --source=. --remote=origin --pu
 脚本会：
 
 - 启用提交前隐私检查；
-- 创建本地专用的索引、总览和 AI 上下文文件；
+- 创建本地专用的索引、总览、待确认清单和系统状态文件，并写入初始化日期；
 - 尝试把仓库内的 LifeOS Skill 链接到 Codex 全局技能目录；
 - 不覆盖任何已经存在的个人文件或全局 Skill。
 
@@ -65,6 +66,26 @@ gh repo create YOUR_GITHUB_NAME/LifeOS --private --source=. --remote=origin --pu
 使用 $lifeos，结合我过去类似决定的结果，帮我分析当前选择。
 ```
 
+## 知识状态模型
+
+模板区分三类记录：
+
+- 历史事实：保存发生时间、记录时间、来源和置信度，不因时间经过自动失效。
+- 当前状态：保存截至日期、更新日期和复核周期；超出周期只提示复核，不自动判为错误事实。
+- 计划：保存状态、下一步和下次决策点；不知道时明确写“尚未明确”。
+
+人物卡、领域总览、经历索引和 AI 上下文是派生视图，原始证据和权威记录仍是事实依据。字段细则见 [知识状态模型](.agents/skills/lifeos/references/knowledge-schema.md)。
+
+## 质量检查
+
+需要检查失效链接、重复记录 ID、缺失来源、待复核状态、计划决策点、孤立记录、待清理批次和备份状态时运行：
+
+```bash
+./脚本/检查知识库质量.sh
+```
+
+检查只读，不会移动、删除或改写个人资料。新建的空白库尚无备份、整理报告或检索基准时会出现对应警告；警告用于提示后续建设，不代表初始化失败。
+
 ## 加密备份
 
 安装 [age](https://github.com/FiloSottile/age) 后，在仓库外创建私钥：
@@ -79,7 +100,7 @@ gh repo create YOUR_GITHUB_NAME/LifeOS --private --source=. --remote=origin --pu
 
 ## 隐私保护
 
-以下目录的明文默认被 `.gitignore` 和提交钩子阻止：
+Git 采用默认拒绝式白名单：只有仓库规则、模板、Skill、脚本、空目录占位文件，以及根目录中符合命名规则的 age 加密备份及校验文件可见。以下目录的其他明文会被 `.gitignore` 和提交钩子阻止：
 
 - `00-收件箱`
 - `01-日记`
@@ -98,6 +119,8 @@ gh repo create YOUR_GITHUB_NAME/LifeOS --private --source=. --remote=origin --pu
 ./脚本/检查可提交内容.sh
 ```
 
+检查还会拒绝非白名单路径、私钥与高置信令牌、未加密压缩包、用户主目录绝对路径、常见手机号/证件号/邮箱形式，以及格式或校验不正确的加密备份。
+
 ## 从模板同步更新
 
 `LifeOS_Template` 是通用系统文件的权威来源。在模板目录执行：
@@ -107,7 +130,7 @@ gh repo create YOUR_GITHUB_NAME/LifeOS --private --source=. --remote=origin --pu
 ./脚本/同步到个人库.sh "/path/to/your/LifeOS" --apply
 ```
 
-同步使用严格白名单，只覆盖通用规则、模板、Skill 和脚本，不读取或复制个人数据。
+同步清单使用严格白名单，只覆盖通用规则、模板、Skill、脚本和空目录占位文件；不会读取或复制个人数据，也不会同步 `age-recipient.txt`。
 
 ## 目录说明
 
