@@ -1,40 +1,5 @@
 #!/bin/zsh
 set -euo pipefail
 
-LIFEOS_BLOCKED=0
-
-while IFS= read -r -d '' LIFEOS_FILE; do
-  case "$LIFEOS_FILE" in
-    00-收件箱/*|01-日记/*|10-人生经历/*|20-人物关系/*|30-健康/*|40-财务/*|50-兴趣与生活/*|90-附件/*|99-系统/AI上下文/*|99-系统/AI整理报告/*)
-      if [[ "$LIFEOS_FILE" != */.gitkeep ]]; then
-        print -u2 "禁止提交个人明文：$LIFEOS_FILE"
-        LIFEOS_BLOCKED=1
-      fi
-      ;;
-    *解密密钥*|*.key|*.pem|.env|.env.*)
-      print -u2 "禁止提交密钥或凭据：$LIFEOS_FILE"
-      LIFEOS_BLOCKED=1
-      ;;
-    *.zip|*.tar|*.tar.gz)
-      print -u2 "禁止提交未加密压缩包：$LIFEOS_FILE"
-      LIFEOS_BLOCKED=1
-      ;;
-    *.zip.age)
-      if [[ "$LIFEOS_FILE" == */* || "$LIFEOS_FILE" != LifeOS-*.zip.age ]]; then
-        print -u2 "加密备份必须位于根目录并命名为 LifeOS-*.zip.age：$LIFEOS_FILE"
-        LIFEOS_BLOCKED=1
-      fi
-      ;;
-    *.zip.age.sha256)
-      if [[ "$LIFEOS_FILE" == */* || "$LIFEOS_FILE" != LifeOS-*.zip.age.sha256 ]]; then
-        print -u2 "备份校验文件必须位于根目录并匹配 LifeOS-*.zip.age.sha256：$LIFEOS_FILE"
-        LIFEOS_BLOCKED=1
-      fi
-      ;;
-  esac
-done < <(git diff --cached --name-only --diff-filter=ACMR -z)
-
-if (( LIFEOS_BLOCKED != 0 )); then
-  print -u2 "提交已停止。请移除上述文件后重试。"
-  exit 1
-fi
+LIFEOS_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+"$LIFEOS_ROOT/脚本/检查可提交内容.sh" --staged

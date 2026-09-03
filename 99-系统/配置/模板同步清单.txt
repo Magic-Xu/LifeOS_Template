@@ -17,6 +17,7 @@ LICENSE
 10-人生经历/重要事件/.gitkeep
 10-人生经历/决定与结果/.gitkeep
 10-人生经历/目标与复盘/.gitkeep
+10-人生经历/职业经历/.gitkeep
 20-人物关系/.gitkeep
 30-健康/.gitkeep
 30-健康/亲友健康/.gitkeep
