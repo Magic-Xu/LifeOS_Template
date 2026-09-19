@@ -1,17 +1,48 @@
-# 仅列出可以从公开模板复制到个人 LifeOS 的通用路径。
-# 禁止加入 AI上下文、AI整理报告、人物、健康、财务、附件或 age-recipient.txt。
+# 每行一个可公开同步的文件，禁止目录和通配符。新增文件须同时更新同步脚本的白名单。
+# 个人目录只同步空 .gitkeep；不复制个人资料、AI上下文、AI整理报告、加密公钥或备份。
 
-.agents/skills/lifeos
-.githooks
+.agents/skills/lifeos/SKILL.md
+.agents/skills/lifeos/agents/openai.yaml
+.agents/skills/lifeos/references/archive-policy.md
+.agents/skills/lifeos/references/context-routing.md
+.agents/skills/lifeos/references/knowledge-schema.md
+.githooks/pre-commit
 .gitattributes
 .gitignore
 AGENTS.md
 README.md
 LICENSE
-99-系统/工作流
-99-系统/模板
+99-系统/工作流/备份与恢复.md
+99-系统/工作流/整理收件箱.md
+99-系统/工作流/日常记录.md
+99-系统/模板/AI上下文模板.md
+99-系统/模板/人物模板.md
+99-系统/模板/人物索引模板.md
+99-系统/模板/人生事件模板.md
+99-系统/模板/健康总览模板.md
+99-系统/模板/健康记录模板.md
+99-系统/模板/兴趣偏好模板.md
+99-系统/模板/当前目标模板.md
+99-系统/模板/待确认与冲突模板.md
+99-系统/模板/我的概况模板.md
+99-系统/模板/日记模板.md
+99-系统/模板/系统状态模板.md
+99-系统/模板/经历索引模板.md
+99-系统/模板/计划模板.md
+99-系统/模板/财务总览模板.md
+99-系统/模板/财务记录模板.md
+99-系统/模板/重要偏好与边界模板.md
+99-系统/模板/随手记模板.md
+脚本/初始化LifeOS.sh
+脚本/初始化加密.sh
+脚本/同步到个人库.sh
+脚本/恢复加密备份.sh
+脚本/检查可提交内容.sh
+脚本/检查知识库质量.sh
+脚本/生成加密备份.sh
+脚本/验证备份.sh
 99-系统/配置/模板同步清单.txt
-脚本
+
 00-收件箱/.gitkeep
 01-日记/.gitkeep
 10-人生经历/重要事件/.gitkeep

@@ -13,6 +13,18 @@ case "$LIFEOS_SCOPE" in
     ;;
 esac
 
+if ! LIFEOS_GIT_ROOT="$(git rev-parse --show-toplevel)"; then
+  print -u2 "无法读取 Git 仓库，隐私检查未完成。"
+  exit 1
+fi
+if [[ "${LIFEOS_GIT_ROOT:A}" != "${LIFEOS_ROOT:A}" ]]; then
+  print -u2 "LifeOS 必须是独立 Git 仓库，隐私检查未完成：$LIFEOS_ROOT"
+  exit 1
+fi
+
+LIFEOS_FILE_LIST_PATH="$(mktemp "${TMPDIR:-/tmp}/lifeos-submit-check.XXXXXX")"
+trap 'rm -f "$LIFEOS_FILE_LIST_PATH"' EXIT
+
 lifeos_path_is_allowed() {
   case "$1" in
     .gitattributes|.gitignore|AGENTS.md|README.md|LICENSE)
@@ -95,7 +107,7 @@ lifeos_file_is_symlink() {
 lifeos_file_contains_secret() {
   local LIFEOS_SECRET_PATTERN='AGE-SECRET-KEY-1[0-9A-Z]+|-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{36,}|sk-(proj-)?[A-Za-z0-9_-]{32,}'
   if [[ "$LIFEOS_SCOPE" == "--staged" ]]; then
-    git show ":$1" | LC_ALL=C grep -aEiq "$LIFEOS_SECRET_PATTERN"
+    git show ":$1" | LC_ALL=C grep -aEi "$LIFEOS_SECRET_PATTERN" >/dev/null
   else
     LC_ALL=C grep -aEiq "$LIFEOS_SECRET_PATTERN" "$1"
   fi
@@ -104,7 +116,7 @@ lifeos_file_contains_secret() {
 lifeos_file_contains_personal_identifier() {
   local LIFEOS_PERSONAL_PATTERN='/Users/[^/[:space:]]+/|/home/[^/[:space:]]+/|[[:alnum:]._%+-]+@[[:alnum:].-]+\.[[:alpha:]]{2,}|(^|[^0-9])1[3-9][0-9]{9}([^0-9]|$)|(^|[^0-9])[0-9]{17}[0-9Xx]([^0-9]|$)'
   if [[ "$LIFEOS_SCOPE" == "--staged" ]]; then
-    git show ":$1" | LC_ALL=C grep -aEiq "$LIFEOS_PERSONAL_PATTERN"
+    git show ":$1" | LC_ALL=C grep -aEi "$LIFEOS_PERSONAL_PATTERN" >/dev/null
   else
     LC_ALL=C grep -aEiq "$LIFEOS_PERSONAL_PATTERN" "$1"
   fi
@@ -136,6 +148,11 @@ if [[ "$LIFEOS_SCOPE" == "--staged" ]]; then
   LIFEOS_FILE_LIST=(git diff --cached --name-only --diff-filter=ACMR -z)
 else
   LIFEOS_FILE_LIST=(git ls-files -co --exclude-standard -z)
+fi
+
+if ! "${LIFEOS_FILE_LIST[@]}" > "$LIFEOS_FILE_LIST_PATH"; then
+  print -u2 "无法读取 Git 文件列表，隐私检查未完成。"
+  exit 1
 fi
 
 while IFS= read -r -d '' LIFEOS_FILE; do
@@ -217,7 +234,7 @@ while IFS= read -r -d '' LIFEOS_FILE; do
       fi
       ;;
   esac
-done < <("${LIFEOS_FILE_LIST[@]}")
+done < "$LIFEOS_FILE_LIST_PATH"
 
 if (( LIFEOS_FAILED != 0 )); then
   print -u2 "检查失败，未执行 Git 操作。"

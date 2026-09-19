@@ -38,6 +38,7 @@ fi
   zip -qry "$LIFEOS_TEMP_ZIP" "$LIFEOS_NAME" \
     -x "$LIFEOS_NAME/.git/*" \
        "$LIFEOS_NAME/.trash/*" \
+       "$LIFEOS_NAME/.template-backups/*" \
        "$LIFEOS_NAME/LifeOS-*.zip.age" \
        "$LIFEOS_NAME/LifeOS-*.zip.age.sha256" \
        "$LIFEOS_NAME/.DS_Store"

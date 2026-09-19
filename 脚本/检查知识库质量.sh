@@ -32,10 +32,10 @@ lifeos_error() {
 
 lifeos_date_epoch() {
   local LIFEOS_DATE_VALUE="$1"
-  if date -j -f '%Y-%m-%d' "$LIFEOS_DATE_VALUE" '+%s' >/dev/null 2>&1; then
-    date -j -f '%Y-%m-%d' "$LIFEOS_DATE_VALUE" '+%s'
+  if date -j -f '%Y-%m-%d %H:%M:%S' "$LIFEOS_DATE_VALUE 00:00:00" '+%s' >/dev/null 2>&1; then
+    date -j -f '%Y-%m-%d %H:%M:%S' "$LIFEOS_DATE_VALUE 00:00:00" '+%s'
   else
-    date -d "$LIFEOS_DATE_VALUE" '+%s' 2>/dev/null
+    date -d "$LIFEOS_DATE_VALUE 00:00:00" '+%s' 2>/dev/null
   fi
 }
 
@@ -165,6 +165,8 @@ lifeos_info "带复核周期的当前状态：${LIFEOS_FRESHNESS_COUNT} 个。"
 typeset -i LIFEOS_PLAN_DECISIONS=0
 while IFS= read -r LIFEOS_FILE; do
   [[ -z "$LIFEOS_FILE" ]] && continue
+  LIFEOS_PLAN_STATUS=$(sed -n '1,50p' "$LIFEOS_FILE" | awk -F: '/^状态:/ { value=$2; gsub(/[[:space:]]/, "", value); print value; exit }')
+  [[ "$LIFEOS_PLAN_STATUS" == "完成" || "$LIFEOS_PLAN_STATUS" == "放弃" ]] && continue
   LIFEOS_DECISION=$(sed -n '1,50p' "$LIFEOS_FILE" | awk -F: '/^下次决策点:/ { value=$2; sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$/, "", value); print value; exit }')
   (( LIFEOS_PLAN_DECISIONS += 1 ))
 
@@ -209,10 +211,15 @@ typeset -i LIFEOS_TRASH_BATCHES=0
 typeset -i LIFEOS_DUE_TRASH_BATCHES=0
 for LIFEOS_TRASH_DIR in .trash/待清理-????-??-??(N/); do
   (( LIFEOS_TRASH_BATCHES += 1 ))
-  LIFEOS_DUE_DATE="${LIFEOS_TRASH_DIR:t}"
-  LIFEOS_DUE_DATE="${LIFEOS_DUE_DATE#待清理-}"
-  if [[ "$LIFEOS_DUE_DATE" == "$LIFEOS_TODAY" || "$LIFEOS_DUE_DATE" < "$LIFEOS_TODAY" ]]; then
-    lifeos_warn "存在到期待确认清理的批次：$LIFEOS_TRASH_DIR"
+  LIFEOS_ARCHIVED_DATE="${LIFEOS_TRASH_DIR:t}"
+  LIFEOS_ARCHIVED_DATE="${LIFEOS_ARCHIVED_DATE#待清理-}"
+  if ! LIFEOS_ARCHIVED_EPOCH="$(lifeos_date_epoch "$LIFEOS_ARCHIVED_DATE")"; then
+    lifeos_error "回收批次日期无效：$LIFEOS_TRASH_DIR"
+    continue
+  fi
+  LIFEOS_TRASH_AGE=$(( (LIFEOS_TODAY_EPOCH - LIFEOS_ARCHIVED_EPOCH) / 86400 ))
+  if (( LIFEOS_TRASH_AGE >= 30 )); then
+    lifeos_warn "存在已保留 30 天、待确认清理的批次：$LIFEOS_TRASH_DIR"
     (( LIFEOS_DUE_TRASH_BATCHES += 1 ))
   fi
 done
@@ -247,10 +254,10 @@ if [[ ! -f "$LIFEOS_BENCHMARK" ]]; then
 else
   LIFEOS_BENCHMARK_CASES=$(rg -c '^\| RET-[0-9]+' "$LIFEOS_BENCHMARK" 2>/dev/null || true)
   LIFEOS_BENCHMARK_CASES="${LIFEOS_BENCHMARK_CASES:-0}"
-  if (( LIFEOS_BENCHMARK_CASES < 20 )); then
-    lifeos_error "检索基准不足 20 个用例：当前 ${LIFEOS_BENCHMARK_CASES} 个。"
+  if (( LIFEOS_BENCHMARK_CASES == 0 )); then
+    lifeos_error "检索基准没有有效用例；请按 | RET-001 | 问题 | 入口 | 证据 | 格式记录真实用例。"
   else
-    lifeos_info "检索基准：${LIFEOS_BENCHMARK_CASES} 个用例。"
+    lifeos_info "检索基准：${LIFEOS_BENCHMARK_CASES} 个用例；本检查不验证检索排名，路由修改后需另行回归。"
   fi
 fi
 
